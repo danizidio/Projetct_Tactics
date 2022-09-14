@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ea9ca34c24ff6f429a79166f0fbc482, type: 3}
   m_Name: Sentinel
   m_EditorClassIdentifier: 
-  _charName: Sentinela
+  _charName: Sentinel
   _charPortrait: {fileID: 21300000, guid: 0c31271570d201143ae870e1bd9c196e, type: 3}
   _life: 50
   _energy: 10

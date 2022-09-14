@@ -194,6 +194,8 @@ public class BattleBehaviour : StateMachines
                     
                     AttackerName("Battle is Over!!");
 
+                    OnNextBattleState?.Invoke(BattleStates.FINISHING_BATTLE);
+
                     break;
                 }
         }       
@@ -211,8 +213,6 @@ public class BattleBehaviour : StateMachines
         if (orderAtk.Count > 0)
         {
             AttackerName(orderAtk.First().GetComponent<AtributesManager>().GetName);
-
-            print(orderAtk.First().GetComponent<AtributesManager>().GetName);
 
             actor.GetComponent<AtributesManager>().SufferDamage(
             orderAtk.First().gameObject.GetComponent<AtributesManager>().PlayerAtributes.Attack);
