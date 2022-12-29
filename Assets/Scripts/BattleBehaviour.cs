@@ -237,8 +237,6 @@ public class BattleBehaviour : StateMachines
         {
             AttackerName(orderAtk.First().GetComponent<AtributesManager>().GetName);
 
-            print(orderAtk.First().gameObject.name);
-
             ChoosePlayerToAttack();
         }
         else

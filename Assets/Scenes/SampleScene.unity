@@ -446,7 +446,7 @@ GameObject:
   - component: {fileID: 199363353}
   - component: {fileID: 199363354}
   m_Layer: 0
-  m_Name: Sentinel
+  m_Name: Sentinela
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1565,6 +1565,7 @@ MonoBehaviour:
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
+  m_AlphaBlendOnOverlap: 0
   m_OverlapOperation: 0
   m_NormalMapDistance: 3
   m_NormalMapQuality: 2
@@ -2330,7 +2331,7 @@ GameObject:
   - component: {fileID: 1062413368}
   - component: {fileID: 1062413369}
   m_Layer: 0
-  m_Name: Cyclop
+  m_Name: Ciclope
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3867,7 +3868,7 @@ MonoBehaviour:
   _battleState: 0
   _battleNextState: 0
   _slashFx: {fileID: 6974150882791028593, guid: 7930a816af2e30a4980e962a7a55b96c, type: 3}
-  players: []
+  _players: []
   _enemies: []
   orderAtk: []
   _atkPanel: {fileID: 914596317}
@@ -4877,6 +4878,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -4926,7 +4928,7 @@ GameObject:
   - component: {fileID: 1978208164}
   - component: {fileID: 1978208165}
   m_Layer: 0
-  m_Name: Hero
+  m_Name: Heroi
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
