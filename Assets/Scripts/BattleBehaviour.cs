@@ -26,6 +26,8 @@ public class BattleBehaviour : StateMachines
     [SerializeField] GameObject _atkPanel;
     [SerializeField] TMP_Text _txtTurn, _attackerTurn;
 
+    [SerializeField] GameObject _actorTurn, _latterActor;
+
     [SerializeField] GameObject _txtList, _atkList;
 
     int _turns = 0;
@@ -58,6 +60,7 @@ public class BattleBehaviour : StateMachines
 
                     foreach (GameObject actor in actors)
                     {
+                        actor.GetComponent<AtributesManager>().CharactersTurn(false);
                         _players.Add(actor);
                     }
 
@@ -117,8 +120,10 @@ public class BattleBehaviour : StateMachines
                 }
             case BattleStates.START:
                 {
-                    AttackerName(orderAtk.First().GetComponent<AtributesManager>().GetName);
-
+                    _actorTurn = orderAtk.First();
+                    _actorTurn.GetComponent<AtributesManager>().CharactersTurn(true);
+                    AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
+                    
                     OnNextBattleState?.Invoke(BattleStates.ATTACK);
 
                     break;
@@ -131,9 +136,7 @@ public class BattleBehaviour : StateMachines
                     }
                     else
                     {
-                        AttackerName(orderAtk.First().GetComponent<AtributesManager>().GetName);
-
-                        if (orderAtk.First().gameObject.CompareTag("Enemy"))
+                        if (_actorTurn.CompareTag("Enemy"))
                         {
                             _atkPanel.SetActive(false);
 
@@ -149,7 +152,6 @@ public class BattleBehaviour : StateMachines
                 }
             case BattleStates.NEXT_ATTACKER:
                 {
-
                     GameObject[] txtObjs = GameObject.FindGameObjectsWithTag("txtOrder");
 
                     if (txtObjs != null)
@@ -160,13 +162,23 @@ public class BattleBehaviour : StateMachines
                         }
                     }
 
-                    orderAtk = orderAtk.OrderByDescending(e => e.GetComponent<AtributesManager>().GetSpeed()).ToList();
+                    _latterActor = _actorTurn;
+                    _actorTurn = null;
 
+                    if(_latterActor != null)
+                    _latterActor.GetComponent<AtributesManager>().CharactersTurn(false);
+
+                    orderAtk = orderAtk.OrderByDescending(e => e.GetComponent<AtributesManager>().GetSpeed()).ToList();
+                    
                     foreach (GameObject g in orderAtk)
                     {
                         GameObject temp = Instantiate(_txtList, _atkList.transform);
                         temp.GetComponentInChildren<TMP_Text>().text = g.name;
                     }
+
+                    _actorTurn = orderAtk.First();
+                    _actorTurn.GetComponent<AtributesManager>().CharactersTurn(true);
+                    AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
 
                     StartCoroutine(WaitToCallNextState(BattleStates.ATTACK));
 
@@ -174,7 +186,7 @@ public class BattleBehaviour : StateMachines
                 }
             case BattleStates.END_TURN:
                 {
-                    if(_enemies.Count > 0 && _players.Count > 0)
+                    if (_enemies.Count > 0 && _players.Count > 0)
                     {
                         if (Input.anyKeyDown)
                         {
@@ -212,10 +224,10 @@ public class BattleBehaviour : StateMachines
     {
         if (orderAtk.Count > 0)
         {
-            AttackerName(orderAtk.First().GetComponent<AtributesManager>().GetName);
+            AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
 
             actor.GetComponent<AtributesManager>().SufferDamage(
-            orderAtk.First().gameObject.GetComponent<AtributesManager>().PlayerAtributes.Attack);
+            _actorTurn.GetComponent<AtributesManager>().PlayerAtributes.Attack);
 
             Instantiate(_slashFx, actor.transform);
 
@@ -233,9 +245,9 @@ public class BattleBehaviour : StateMachines
 
     public void EnemyAttack()
     {
-        if (orderAtk.Count > 0)
+        if (orderAtk.Count >= 0)
         {
-            AttackerName(orderAtk.First().GetComponent<AtributesManager>().GetName);
+            AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
 
             ChoosePlayerToAttack();
         }
@@ -246,7 +258,7 @@ public class BattleBehaviour : StateMachines
     }
     void AttackerName(string s)
     {
-        _attackerTurn.text = s;
+        _attackerTurn.text = s + "'s turn!";
     }
 
     int NextTurn()
@@ -278,11 +290,11 @@ public class BattleBehaviour : StateMachines
             int i = Random.Range(0, p.Length);
 
             p[i].GetComponent<AtributesManager>().SufferDamage(
-            orderAtk.First().gameObject.GetComponent<AtributesManager>().PlayerAtributes.Attack);
+            _actorTurn.GetComponent<AtributesManager>().PlayerAtributes.Attack);
 
             Instantiate(_slashFx, p[i].transform);
 
-            orderAtk.Remove(orderAtk.First());
+            orderAtk.Remove(_actorTurn);
 
             _timer = 0;
 

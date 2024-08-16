@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ea9ca34c24ff6f429a79166f0fbc482, type: 3}
   m_Name: Ciclop
   m_EditorClassIdentifier: 
-  _charName: Ciclope
+  _charName: Ciclop
   _charPortrait: {fileID: 21300000, guid: 6db3684816890fb40b4aa8d5d169b55f, type: 3}
   _life: 20
   _energy: 10

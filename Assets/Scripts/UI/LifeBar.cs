@@ -7,9 +7,17 @@ using TMPro;
 
 public class LifeBar : MonoBehaviour
 {
+    [SerializeField] bool _isActive;
+
     [SerializeField] Image _lifeBar;
 
     [SerializeField] Image _portrait;
+
+    [SerializeField] Image _innerFrame;
+
+    [SerializeField] Color _inactiveColor;
+
+    [SerializeField] Color _activeColor;
 
     [SerializeField] float maxTime;
 
@@ -36,6 +44,20 @@ public class LifeBar : MonoBehaviour
         t.GetComponent<Timer>().SetTimer(maxTime, () => this.gameObject.SetActive(false));
     }
 
+    public bool ActiveTurn(bool b)
+    {
+        if(b)
+        {
+            _innerFrame.color = _activeColor;
+        }
+        else
+        {
+            _innerFrame.color = _inactiveColor;
+        }
+
+        return _isActive = b;
+    }
+
     public void SettingInfos(float maxLifeValue, float currentLifeValue, string heroName, Sprite heroPortrait)
     {
         _portrait.sprite = heroPortrait;
@@ -46,6 +68,7 @@ public class LifeBar : MonoBehaviour
 
         _lifeValues.text = currentLifeValue + " / " + maxLifeValue;
 
+        _innerFrame.color = _inactiveColor;
     }
 
     public void UpdateLifeBar(float currentLife, float maxLife)

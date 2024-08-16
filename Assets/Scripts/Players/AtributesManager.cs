@@ -13,6 +13,7 @@ public class AtributesManager : MonoBehaviour
     [SerializeField] float _auxSpeed;
 
     [SerializeField] GameObject _placeInfo;
+
     GameObject _instantiatedInfo;
 
     public string GetName { get { return _playerAtributes.CharName; } }
@@ -41,6 +42,11 @@ public class AtributesManager : MonoBehaviour
             _instantiatedInfo.GetComponent<LifeBar>().SettingInfos(PlayerAtributes.Life, _currentLife,
                GetName, PlayerAtributes.CharPortrait);
         }
+    }
+
+    public void CharactersTurn(bool b)
+    {
+        _instantiatedInfo.GetComponent<LifeBar>().ActiveTurn(b);
     }
 
     public void SufferDamage(float damage)

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ea9ca34c24ff6f429a79166f0fbc482, type: 3}
   m_Name: Ogro
   m_EditorClassIdentifier: 
-  _charName: Ogro
+  _charName: Ogre
   _charPortrait: {fileID: 21300000, guid: b92d7ccce8071d148af32b4ec30bae62, type: 3}
   _life: 30
   _energy: 10
