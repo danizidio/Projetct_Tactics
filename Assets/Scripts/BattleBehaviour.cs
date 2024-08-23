@@ -4,6 +4,8 @@ using UnityEngine;
 using StateMachine;
 using System.Linq;
 using TMPro;
+using UnityEngine.UI;
+using System;
 
 public class BattleBehaviour : StateMachines
 {
@@ -13,7 +15,10 @@ public class BattleBehaviour : StateMachines
     public delegate void _onDead();
     public static _onDead Ondead;
 
-    [SerializeField] GameObject _slashFx;
+    public static Action OnChangeTurn;
+
+    [SerializeField] GameObject _damageFx;
+    [SerializeField] Button _defenseButton;
 
     GameObject[] actors;
 
@@ -71,6 +76,8 @@ public class BattleBehaviour : StateMachines
                         _enemies.Add(actor);
                     }
 
+                    _defenseButton.GetComponent<Button>().onClick.AddListener(Defender);
+
                     OnNextBattleState?.Invoke(BattleStates.SET_ATTACK_ORDER);
 
                     break;
@@ -123,13 +130,15 @@ public class BattleBehaviour : StateMachines
                     _actorTurn = orderAtk.First();
                     _actorTurn.GetComponent<AtributesManager>().CharactersTurn(true);
                     AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
-                    
+
                     OnNextBattleState?.Invoke(BattleStates.ATTACK);
 
                     break;
                 }
             case BattleStates.ATTACK:
                 {
+                    AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
+
                     if (orderAtk.Count <= 0)
                     {
                         OnNextBattleState?.Invoke(BattleStates.END_TURN);
@@ -176,11 +185,18 @@ public class BattleBehaviour : StateMachines
                         temp.GetComponentInChildren<TMP_Text>().text = g.name;
                     }
 
-                    _actorTurn = orderAtk.First();
-                    _actorTurn.GetComponent<AtributesManager>().CharactersTurn(true);
-                    AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
+                    try
+                    {
+                        _actorTurn = orderAtk.First();
+                        _actorTurn.GetComponent<AtributesManager>().CharactersTurn(true);
+                        //AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
 
-                    StartCoroutine(WaitToCallNextState(BattleStates.ATTACK));
+                        StartCoroutine(WaitToCallNextState(BattleStates.ATTACK));
+                    }
+                    catch
+                    {
+                        OnNextBattleState?.Invoke(BattleStates.SET_ATTACK_ORDER);
+                    }
 
                     break;
                 }
@@ -224,12 +240,16 @@ public class BattleBehaviour : StateMachines
     {
         if (orderAtk.Count > 0)
         {
-            AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
+            //AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
+
+            int damageOutput = _actorTurn.GetComponent<AtributesManager>().PlayerAtributes.Attack - actor.GetComponent<AtributesManager>().currentDef;
 
             actor.GetComponent<AtributesManager>().SufferDamage(
             _actorTurn.GetComponent<AtributesManager>().PlayerAtributes.Attack);
 
-            Instantiate(_slashFx, actor.transform);
+            GameObject temp = Instantiate(_damageFx, actor.transform.position, Quaternion.identity, actor.transform);
+            temp.GetComponent<Canvas>().worldCamera = Camera.main;
+            temp.GetComponent<DamageOutput>().SetDamage(damageOutput);
 
             orderAtk.Remove(orderAtk.First());
 
@@ -241,65 +261,53 @@ public class BattleBehaviour : StateMachines
         }
     }
 
-    #endregion
-
-    public void EnemyAttack()
+    public void Defender()
     {
-        if (orderAtk.Count >= 0)
+        if (orderAtk.Count > 0)
         {
-            AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
+            _actorTurn.GetComponent<AtributesManager>().DefenseBoost();
 
-            ChoosePlayerToAttack();
+            orderAtk.Remove(orderAtk.First());
+
+            StartCoroutine(WaitToCallNextState(BattleStates.NEXT_ATTACKER));
         }
         else
         {
             StartCoroutine(WaitToCallNextState(BattleStates.END_TURN));
         }
     }
-    void AttackerName(string s)
+    #endregion
+
+    public void EnemyAttack()
     {
-        _attackerTurn.text = s + "'s turn!";
-    }
-
-    int NextTurn()
-    {
-        _turns++;
-
-        _txtTurn.text = "TURN " + _turns;
-
-        return _turns;
-    }
-
-    IEnumerator WaitToCallNextState(BattleStates state)
-    {
-        yield return new WaitForSeconds(1);
-
-        OnNextBattleState?.Invoke(state);
-
-        StopCoroutine(WaitToCallNextState(state));
-    }
-
-    void ChoosePlayerToAttack()
-    {
-        _timer += Time.deltaTime;
-
-        if(_timer >= 1)
+        if (orderAtk.Count > 0)
         {
-            GameObject[] p = _players.ToArray();
+            _timer += Time.deltaTime;
 
-            int i = Random.Range(0, p.Length);
+            if (_timer >= 1)
+            {
+                GameObject[] p = _players.ToArray();
 
-            p[i].GetComponent<AtributesManager>().SufferDamage(
-            _actorTurn.GetComponent<AtributesManager>().PlayerAtributes.Attack);
+                int i = UnityEngine.Random.Range(0, p.Length);
 
-            Instantiate(_slashFx, p[i].transform);
+                int damageOutput = p[i].GetComponent<AtributesManager>().SufferDamage(_actorTurn.GetComponent<AtributesManager>().PlayerAtributes.Attack);
 
-            orderAtk.Remove(_actorTurn);
+                GameObject temp = Instantiate(_damageFx, p[i].transform.position, Quaternion.identity, p[i].transform);
+                temp.GetComponent<Canvas>().worldCamera = Camera.main;
+                temp.GetComponent<DamageOutput>().SetDamage(damageOutput);
 
-            _timer = 0;
+                orderAtk.Remove(_actorTurn);
 
-            StartCoroutine(WaitToCallNextState(BattleStates.NEXT_ATTACKER));
-        }    
+                _timer = 0;
+
+                StartCoroutine(WaitToCallNextState(BattleStates.NEXT_ATTACKER));
+            }
+            else
+            {
+                StartCoroutine(WaitToCallNextState(BattleStates.END_TURN));
+            }
+
+        }
     }
 
     void FindAllActors()
@@ -326,5 +334,35 @@ public class BattleBehaviour : StateMachines
             OnNextBattleState(BattleStates.FINISHING_BATTLE);
         }
 
+    }
+
+    void AttackerName(string s)
+    {
+        _attackerTurn.text = s + "'s turn!";
+    }
+
+    IEnumerator WaitToCallNextState(BattleStates state)
+    {
+        yield return new WaitForSeconds(1);
+
+        OnNextBattleState?.Invoke(state);
+
+        StopCoroutine(WaitToCallNextState(state));
+    }
+
+    int NextTurn()
+    {
+        _turns++;
+
+        _txtTurn.text = "TURN " + _turns;
+
+        OnChangeTurn?.Invoke();
+
+        return _turns;
+    }
+
+    private void OnDisable()
+    {
+        OnChangeTurn = null;
     }
 }

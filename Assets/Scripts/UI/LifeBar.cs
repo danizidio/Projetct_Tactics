@@ -1,11 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
+using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
 using TimeCounter;
 using TMPro;
 
-public class LifeBar : MonoBehaviour
+public class LifeBar : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] bool _isActive;
 
@@ -15,20 +14,27 @@ public class LifeBar : MonoBehaviour
 
     [SerializeField] Image _innerFrame;
 
+    [SerializeField] Image _shieldIcon;
+
     [SerializeField] Color _inactiveColor;
 
     [SerializeField] Color _activeColor;
 
     [SerializeField] float maxTime;
 
-    [SerializeField] TMP_Text _heroName, _lifeValues;
+    [SerializeField] TMP_Text _heroName, _lifeValues, _statsTxt;
+
+    [SerializeField] GameObject _heroStats;
 
     Timer t;
-
 
     void Start()
     {
         t = GetComponent<Timer>();
+
+        DefIconEnabled(false);
+
+        _heroStats.SetActive(false);
     }
 
     private void LateUpdate()
@@ -38,6 +44,12 @@ public class LifeBar : MonoBehaviour
             t.CountDown();
         }
     }
+
+    public void DefIconEnabled(bool b)
+    {
+        _shieldIcon.enabled = b;
+    }
+
 
     public void StayActive()
     {
@@ -58,7 +70,7 @@ public class LifeBar : MonoBehaviour
         return _isActive = b;
     }
 
-    public void SettingInfos(float maxLifeValue, float currentLifeValue, string heroName, Sprite heroPortrait)
+    public void SettingInfos(float maxLifeValue, float currentLifeValue, float defenseValue, float speedValue, int attackValue, string heroName, Sprite heroPortrait)
     {
         _portrait.sprite = heroPortrait;
 
@@ -69,6 +81,16 @@ public class LifeBar : MonoBehaviour
         _lifeValues.text = currentLifeValue + " / " + maxLifeValue;
 
         _innerFrame.color = _inactiveColor;
+
+        UpdateToolTip(defenseValue, speedValue, attackValue);
+    }
+
+    public void UpdateToolTip(float defenseValue, float speedValue, int attackValue)
+    {
+        _statsTxt.text = "Stats \n" +
+                          "Attack:    " + attackValue + "\n" +
+                          "Defense: " + defenseValue + "\n" +
+                          "Speed:    " + speedValue;
     }
 
     public void UpdateLifeBar(float currentLife, float maxLife)
@@ -83,5 +105,15 @@ public class LifeBar : MonoBehaviour
         float value = currentLife / maxLife;
 
         _lifeBar.fillAmount = value;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        _heroStats.SetActive(true);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        _heroStats.SetActive(false);
     }
 }

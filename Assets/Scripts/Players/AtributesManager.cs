@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AtributesManager : MonoBehaviour
@@ -10,7 +8,14 @@ public class AtributesManager : MonoBehaviour
     [SerializeField] float _currentLife;
 
     [SerializeField] float _currentSpeed;
-    [SerializeField] float _auxSpeed;
+    public float currentSpeed { get { return _playerAtributes.Speed + _auxSpeed; } }
+
+    float _auxSpeed;
+
+    public int currentDef { get { return _playerAtributes.Defense + _auxDef; } }
+
+    int _auxDef;
+
 
     [SerializeField] GameObject _placeInfo;
 
@@ -30,8 +35,8 @@ public class AtributesManager : MonoBehaviour
 
             _instantiatedInfo = Instantiate(_placeInfo, heroGrid.transform);
 
-            _instantiatedInfo.GetComponent<LifeBar>().SettingInfos(PlayerAtributes.Life, _currentLife,
-                GetName, PlayerAtributes.CharPortrait);
+            _instantiatedInfo.GetComponent<LifeBar>().SettingInfos(PlayerAtributes.Life, _currentLife, currentDef, PlayerAtributes.Speed,
+                                                                                                   PlayerAtributes.Attack, GetName, PlayerAtributes.CharPortrait);
         }
         else
         {
@@ -39,8 +44,8 @@ public class AtributesManager : MonoBehaviour
 
             _instantiatedInfo = Instantiate(_placeInfo, heroGrid.transform);
 
-            _instantiatedInfo.GetComponent<LifeBar>().SettingInfos(PlayerAtributes.Life, _currentLife,
-               GetName, PlayerAtributes.CharPortrait);
+            _instantiatedInfo.GetComponent<LifeBar>().SettingInfos(PlayerAtributes.Life, _currentLife, currentDef, PlayerAtributes.Speed, 
+                                                                                                    PlayerAtributes.Attack, GetName, PlayerAtributes.CharPortrait);
         }
     }
 
@@ -49,9 +54,10 @@ public class AtributesManager : MonoBehaviour
         _instantiatedInfo.GetComponent<LifeBar>().ActiveTurn(b);
     }
 
-    public void SufferDamage(float damage)
+    public int SufferDamage(float damage)
     {
-        float calcDamage = damage - PlayerAtributes.Defense;
+        int calcDamage = (int)damage - currentDef;
+        if(calcDamage < 0) calcDamage = 0;
         _currentLife -= calcDamage;
 
         _instantiatedInfo.GetComponent<LifeBar>().UpdateLifeBar(_currentLife, PlayerAtributes.Life);
@@ -62,10 +68,34 @@ public class AtributesManager : MonoBehaviour
 
             BattleBehaviour.Ondead?.Invoke();
         }
+
+        return calcDamage;
     }
     
+    public void DefenseBoost()
+    {
+        _auxDef = PlayerAtributes.Defense / 2;
+
+        _instantiatedInfo.GetComponent<LifeBar>().UpdateToolTip(currentDef, currentSpeed, PlayerAtributes.Attack);
+        _instantiatedInfo.GetComponent<LifeBar>().DefIconEnabled(true);
+    }
+
+    void RemoveOnturnBuffs()
+    {
+        _auxDef = 0;
+        _auxSpeed = 0;
+
+        _instantiatedInfo.GetComponent<LifeBar>().UpdateToolTip(currentDef, currentSpeed, PlayerAtributes.Attack);
+        _instantiatedInfo.GetComponent<LifeBar>().DefIconEnabled(false);
+    }
+
     public float GetSpeed()
     {
         return _currentSpeed;
+    }
+
+    private void OnEnable()
+    {
+        BattleBehaviour.OnChangeTurn += RemoveOnturnBuffs;
     }
 }

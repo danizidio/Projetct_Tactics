@@ -46,6 +46,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: CameraSortingLayer
+    uniqueID: 2585632183
+    locked: 0
   - name: Slash
     uniqueID: 3637068773
+    locked: 0
+  - name: Refraction
+    uniqueID: 740082547
+    locked: 0
+  - name: UI
+    uniqueID: 2080910593
     locked: 0

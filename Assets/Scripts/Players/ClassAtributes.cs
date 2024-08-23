@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "Class Name", menuName = "Add New Class", order = 1)]
 public class ClassAtributes : ScriptableObject
