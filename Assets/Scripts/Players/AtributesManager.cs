@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class AtributesManager : MonoBehaviour
@@ -60,14 +61,14 @@ public class AtributesManager : MonoBehaviour
         if(calcDamage < 0) calcDamage = 0;
         _currentLife -= calcDamage;
 
-        _instantiatedInfo.GetComponent<LifeBar>().UpdateLifeBar(_currentLife, PlayerAtributes.Life);
-
         if (_currentLife <= 0)
         {
-            this.gameObject.SetActive(false);
+            _currentLife = 0;
 
-            BattleBehaviour.Ondead?.Invoke();
+            StartCoroutine(EnemyDied());
         }
+
+        _instantiatedInfo.GetComponent<LifeBar>().UpdateLifeBar(_currentLife, PlayerAtributes.Life);
 
         return calcDamage;
     }
@@ -97,5 +98,15 @@ public class AtributesManager : MonoBehaviour
     private void OnEnable()
     {
         BattleBehaviour.OnChangeTurn += RemoveOnturnBuffs;
+    }
+
+    IEnumerator EnemyDied()
+    {
+        yield return new WaitForSeconds(1);
+
+        BattleBehaviour.Ondead?.Invoke(this.gameObject);
+//        this.gameObject.SetActive(false);
+
+        StopCoroutine(EnemyDied());
     }
 }

@@ -6,13 +6,14 @@ using System.Linq;
 using TMPro;
 using UnityEngine.UI;
 using System;
+using UnityEngine.SceneManagement;
 
 public class BattleBehaviour : StateMachines
 {
     public delegate float _onSettingAttackOrder(float spd);
     public static _onSettingAttackOrder OnSettingAttackOrder;
 
-    public delegate void _onDead();
+    public delegate void _onDead(GameObject g);
     public static _onDead Ondead;
 
     public static Action OnChangeTurn;
@@ -26,7 +27,8 @@ public class BattleBehaviour : StateMachines
     [SerializeField] List<GameObject> _enemies;
     public List<GameObject> Enemies { get { return _enemies; } }
 
-    [SerializeField] List<GameObject> orderAtk;
+    [SerializeField] List<GameObject> _orderAtk;
+    public List<GameObject> OrderAtk { get { return _orderAtk; } set{ _orderAtk = value; } }
 
     [SerializeField] GameObject _atkPanel;
     [SerializeField] TMP_Text _txtTurn, _attackerTurn;
@@ -43,7 +45,7 @@ public class BattleBehaviour : StateMachines
     {
         OnNextBattleState?.Invoke(BattleStates.BEGINING);
 
-        Ondead = FindAllActors;
+        Ondead = OnDyingUnit;
     }
 
     private void Update()
@@ -86,19 +88,19 @@ public class BattleBehaviour : StateMachines
                 {
                     _atkPanel.SetActive(false);
 
-                    if (orderAtk.Count != 0)
+                    if (_orderAtk.Count != 0)
                     {
-                        orderAtk.Clear();
+                        _orderAtk.Clear();
                     }
 
                     foreach (GameObject player in _players)
                     {
-                        orderAtk.Add(player);
+                        _orderAtk.Add(player);
                     }
 
                     foreach (GameObject enemy in _enemies)
                     {
-                        orderAtk.Add(enemy);
+                        _orderAtk.Add(enemy);
                     }
 
                     GameObject[] txtObjs = GameObject.FindGameObjectsWithTag("txtOrder");
@@ -113,9 +115,9 @@ public class BattleBehaviour : StateMachines
 
                     NextTurn();
 
-                    orderAtk = orderAtk.OrderByDescending(e => e.GetComponent<AtributesManager>().GetSpeed()).ToList();
+                    _orderAtk = _orderAtk.OrderByDescending(e => e.GetComponent<AtributesManager>().GetSpeed()).ToList();
 
-                    foreach (GameObject g in orderAtk)
+                    foreach (GameObject g in _orderAtk)
                     {
                         GameObject temp = Instantiate(_txtList, _atkList.transform);
                         temp.GetComponentInChildren<TMP_Text>().text = g.name;
@@ -127,7 +129,7 @@ public class BattleBehaviour : StateMachines
                 }
             case BattleStates.START:
                 {
-                    _actorTurn = orderAtk.First();
+                    _actorTurn = _orderAtk.First();
                     _actorTurn.GetComponent<AtributesManager>().CharactersTurn(true);
                     AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
 
@@ -139,7 +141,7 @@ public class BattleBehaviour : StateMachines
                 {
                     AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
 
-                    if (orderAtk.Count <= 0)
+                    if (_orderAtk.Count <= 0)
                     {
                         OnNextBattleState?.Invoke(BattleStates.END_TURN);
                     }
@@ -177,9 +179,9 @@ public class BattleBehaviour : StateMachines
                     if(_latterActor != null)
                     _latterActor.GetComponent<AtributesManager>().CharactersTurn(false);
 
-                    orderAtk = orderAtk.OrderByDescending(e => e.GetComponent<AtributesManager>().GetSpeed()).ToList();
+                    _orderAtk = _orderAtk.OrderByDescending(e => e.GetComponent<AtributesManager>().GetSpeed()).ToList();
                     
-                    foreach (GameObject g in orderAtk)
+                    foreach (GameObject g in _orderAtk)
                     {
                         GameObject temp = Instantiate(_txtList, _atkList.transform);
                         temp.GetComponentInChildren<TMP_Text>().text = g.name;
@@ -187,9 +189,8 @@ public class BattleBehaviour : StateMachines
 
                     try
                     {
-                        _actorTurn = orderAtk.First();
+                        _actorTurn = _orderAtk.First();
                         _actorTurn.GetComponent<AtributesManager>().CharactersTurn(true);
-                        //AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
 
                         StartCoroutine(WaitToCallNextState(BattleStates.ATTACK));
                     }
@@ -219,8 +220,13 @@ public class BattleBehaviour : StateMachines
             case BattleStates.FINISHING_BATTLE:
                 {
                     _atkPanel.SetActive(false);
-                    
-                    AttackerName("Battle is Over!!");
+
+                    MainMessage("Battle is Over!!");
+
+                    if (Input.anyKeyDown)
+                    {
+                        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    }
 
                     OnNextBattleState?.Invoke(BattleStates.FINISHING_BATTLE);
 
@@ -238,10 +244,8 @@ public class BattleBehaviour : StateMachines
 
     public void Attacker(GameObject actor)
     {
-        if (orderAtk.Count > 0)
+        if (_orderAtk.Count > 0)
         {
-            //AttackerName(_actorTurn.GetComponent<AtributesManager>().GetName);
-
             int damageOutput = _actorTurn.GetComponent<AtributesManager>().PlayerAtributes.Attack - actor.GetComponent<AtributesManager>().currentDef;
 
             actor.GetComponent<AtributesManager>().SufferDamage(
@@ -251,7 +255,7 @@ public class BattleBehaviour : StateMachines
             temp.GetComponent<Canvas>().worldCamera = Camera.main;
             temp.GetComponent<DamageOutput>().SetDamage(damageOutput);
 
-            orderAtk.Remove(orderAtk.First());
+            _orderAtk.Remove(_orderAtk.First());
 
             StartCoroutine(WaitToCallNextState(BattleStates.NEXT_ATTACKER));
         }
@@ -263,11 +267,11 @@ public class BattleBehaviour : StateMachines
 
     public void Defender()
     {
-        if (orderAtk.Count > 0)
+        if (_orderAtk.Count > 0)
         {
             _actorTurn.GetComponent<AtributesManager>().DefenseBoost();
 
-            orderAtk.Remove(orderAtk.First());
+            _orderAtk.Remove(_orderAtk.First());
 
             StartCoroutine(WaitToCallNextState(BattleStates.NEXT_ATTACKER));
         }
@@ -280,7 +284,7 @@ public class BattleBehaviour : StateMachines
 
     public void EnemyAttack()
     {
-        if (orderAtk.Count > 0)
+        if (_orderAtk.Count > 0)
         {
             _timer += Time.deltaTime;
 
@@ -296,7 +300,7 @@ public class BattleBehaviour : StateMachines
                 temp.GetComponent<Canvas>().worldCamera = Camera.main;
                 temp.GetComponent<DamageOutput>().SetDamage(damageOutput);
 
-                orderAtk.Remove(_actorTurn);
+                _orderAtk.Remove(_actorTurn);
 
                 _timer = 0;
 
@@ -310,10 +314,18 @@ public class BattleBehaviour : StateMachines
         }
     }
 
+    void OnDyingUnit(GameObject actor)
+    {
+        _orderAtk.Remove(actor);
+        actor.SetActive(false);
+
+        FindAllActors();
+    }
+
     void FindAllActors()
     {
         _players.Clear();
-        Enemies.Clear();
+        _enemies.Clear();
 
         actors = GameObject.FindGameObjectsWithTag("Player");
 
@@ -333,21 +345,16 @@ public class BattleBehaviour : StateMachines
         {
             OnNextBattleState(BattleStates.FINISHING_BATTLE);
         }
+    }
 
+    void MainMessage(string message)
+    {
+        _attackerTurn.text = message;
     }
 
     void AttackerName(string s)
     {
         _attackerTurn.text = s + "'s turn!";
-    }
-
-    IEnumerator WaitToCallNextState(BattleStates state)
-    {
-        yield return new WaitForSeconds(1);
-
-        OnNextBattleState?.Invoke(state);
-
-        StopCoroutine(WaitToCallNextState(state));
     }
 
     int NextTurn()
@@ -359,6 +366,15 @@ public class BattleBehaviour : StateMachines
         OnChangeTurn?.Invoke();
 
         return _turns;
+    }
+
+    IEnumerator WaitToCallNextState(BattleStates state)
+    {
+        yield return new WaitForSeconds(1);
+
+        OnNextBattleState?.Invoke(state);
+
+        StopCoroutine(WaitToCallNextState(state));
     }
 
     private void OnDisable()
