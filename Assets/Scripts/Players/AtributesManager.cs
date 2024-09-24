@@ -105,8 +105,5 @@ public class AtributesManager : MonoBehaviour
         yield return new WaitForSeconds(1);
 
         BattleBehaviour.Ondead?.Invoke(this.gameObject);
-//        this.gameObject.SetActive(false);
-
-        StopCoroutine(EnemyDied());
     }
 }
