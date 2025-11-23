@@ -1,8 +1,8 @@
 using UnityEngine;
-using Cinemachine;
+using Unity.Cinemachine;
 
 [RequireComponent(typeof(CinemachineBrain))]
-[RequireComponent(typeof(CinemachineVirtualCamera))]
+[RequireComponent(typeof(CinemachineCamera))]
 public class CameraBehaviour : MonoBehaviour
 {
     public delegate void _onSearchingPlayer(GameObject p);
@@ -10,7 +10,7 @@ public class CameraBehaviour : MonoBehaviour
 
     void FindPlayer(GameObject p)
     {
-        GetComponent<CinemachineVirtualCamera>().Follow = p.transform;
+        GetComponent<CinemachineCamera>().Follow = p.transform;
     }
 
     private void OnEnable()
